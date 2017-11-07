@@ -47,7 +47,6 @@ class EmacsTanglePluginExtension {
     void setOutputDir(File outputDir) {
 
         this.outputDir.set(outputDir)
-        println this.outputDir.get()
 
     }
 
@@ -84,12 +83,18 @@ class Tangle extends DefaultTask {
 
          inputs.outOfDate { change ->
 
+            // create temporary file to deal with way emacs does the tangling
+            def tmpFile = project.file("${outputDir.get()}/${change.file.name}")
+            tmpFile.text = change.file.text
+
             project.exec{
 
-                commandLine "emacs --batch -l org ${change.file} -f org-babel-tangle".tokenize()
+                commandLine "emacs --batch -l org ${tmpFile} -f org-babel-tangle".tokenize()
                 workingDir outputDir.get()
 
             }
+
+            tmpFile.delete()
 
          }
 
